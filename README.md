@@ -52,7 +52,76 @@ indented:
       but is not indented.'
 ```
 
-**If you lint a `.md` (Markdown) file, YAML Linter is also smart enough to lint just the front-matter, and only if it looks like _YAML_ front-matter :)**
+If you lint a `.md` (Markdown) file, YAML Linter is also smart enough to lint just the front-matter, and only if it looks like YAML front-matter :)
+
+
+**What kinds of errors does it address?**
+
+- Disallowed YAML characters. (e.g. Most unicode control characters, like Null, Bell, Backspace, etc.)
+
+- Under-indented lines in multi-line values.
+
+    ```yaml
+    some_key:
+        some_nested_key: "Some multi-line
+    string that isn't indented like it should be."
+    ```
+
+- Unescaped quotes in single- and double-quoted scalars.
+
+    ```yaml
+    some_key: "Thess "quotes" should have been escaped"
+    another: 'This should've been, too'
+    ```
+
+- Unterminated or early-terminated quoted strings:
+
+    ```yaml
+    some_key: "This string never ends.
+    another: 'this is unrelated to the above'
+    ```
+
+    Or (a more common form of this mistake):
+
+    ```yaml
+    some_key: "Amazing," said Joe.
+    another: "\"Yes, indeed,\" said Alice, with proper escaping."
+    ```
+
+- Invalid escape sequences in double-quoted strings.
+
+    ```yaml
+    some_key: "Escaping a \' is not only unnecessary; but it's actually an error in YAML."
+    another: "Unicode escapes MUST be 4 or 8 characters, not \u22, two"
+    ```
+
+- `@` signs at the start of strings.
+
+    ```yaml
+    some_key: @this is not allowed
+    ```
+
+- `[` at the start of strings.
+
+    ```yaml
+    some_key: [TAG] you're it! But this breaks your parser.
+    ```
+
+- HTML entities at the start of strings, which are parsed as anchors in YAML:
+
+    ```yaml
+    some_key: &hellip;some text
+    ```
+
+- Mixed spaces and tabs in indentation.
+
+- Mustache-esque template substitutions that are unquoted (depending whether your templates parse the YAML before or after substituting, you might need to quote these). e.g:
+
+    ```yaml
+    some_key: {{ premium_trial_link }}
+    # vs:
+    some_key: '{{ premium_trial_link }}'
+    ```
 
 
 ## Installation and Usage
