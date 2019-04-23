@@ -1,0 +1,32 @@
+---
+env:
+    commonjs: true
+    es6: true
+    node: true
+
+extends: "eslint:recommended"
+
+globals:
+    Atomics: readonly
+    SharedArrayBuffer: readonly
+
+parserOptions:
+    ecmaVersion: 2018
+
+rules:
+    indent:
+        - error
+        - 2
+        - flatTernaryExpressions: true
+    linebreak-style:
+        - error
+        - unix
+    # We use console.* when debugging is turned on.
+    no-console: off
+    quotes:
+        - error
+        - single
+        - avoidEscape: true
+    semi:
+        - error
+        - always
