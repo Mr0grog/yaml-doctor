@@ -240,7 +240,7 @@ Have errors or additional situations this doesn’t handle well? Want to help wi
 
 Copyright (c) 2019 Rob Brackett and [Asana, Inc.][asana]
 
-Licensed under the BSD 3-clause license. See the `LICENSE` file for the full text of the license.
+Licensed under the MIT license. See the `LICENSE` file for the full text of the license.
 
 
 [asana]: https://asana.com
