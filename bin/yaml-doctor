@@ -8,11 +8,11 @@
 
 'use strict';
 
-const yamlLint = require('..');
+const yamlDoctor = require('..');
 const format = require('../lib/format');
 
-const usage = `Lint YAML for syntax errors.
-Usage: yaml-lint <PATH> [--fix]
+const usage = `Check YAML for syntax errors.
+Usage: yaml-doctor <PATH> [--fix]
 
 Options:
   --help   Print this help message.
@@ -29,7 +29,7 @@ else {
     debug: process.argv.includes('--debug')
   };
 
-  yamlLint.lintFile(filePath, null, options)
+  yamlDoctor.checkFile(filePath, null, options)
     .then(result => {
       if (result.issues.length) {
         format.printIssues(filePath, result.issues);

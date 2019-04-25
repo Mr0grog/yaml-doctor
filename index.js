@@ -5,11 +5,11 @@
  */
 'use strict';
 
-const {lint, lintFile} = require('./lib/lint');
-const lintGulpFileStream = require('./lib/gulp');
+const {check, checkFile} = require('./lib/check');
+const checkGulpFileStream = require('./lib/gulp');
 
 module.exports = {
-  lint,
-  lintFile,
-  lintGulpFileStream
+  check,
+  checkFile,
+  checkGulpFileStream
 };

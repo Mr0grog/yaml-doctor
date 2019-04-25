@@ -8,11 +8,11 @@
 const assert = require('assert');
 const {assertIncludes} = require('./support/assertions');
 const unindent = require('./support/unindent');
-const yamlLint = require('../lib/lint');
+const yamlDoctor = require('../lib/check');
 
-describe('linter', function () {
+describe('checker', function () {
   it('errors for mixed space/tab indentation', function () {
-    const {issues} = yamlLint.lint(unindent`
+    const {issues} = yamlDoctor.check(unindent`
       apps_sidebar_sections:
         - section_label: "Development"
          \tlist: values
@@ -25,7 +25,7 @@ describe('linter', function () {
   });
 
   it('warns for @ signs at the start of scalars', function () {
-    const {issues} = yamlLint.lint(unindent`
+    const {issues} = yamlDoctor.check(unindent`
       some_key: @at sign value
     `);
 
@@ -36,7 +36,7 @@ describe('linter', function () {
   });
 
   it('can fix @ signs at the start of scalars', function () {
-    const {fixed} = yamlLint.lint(unindent`
+    const {fixed} = yamlDoctor.check(unindent`
       some_key: @at sign value
     `, {fix: true});
 
@@ -46,7 +46,7 @@ describe('linter', function () {
   });
 
   it('can fix @ signs at the start of scalars when there are quotes in the middle', function () {
-    const {fixed} = yamlLint.lint(unindent`
+    const {fixed} = yamlDoctor.check(unindent`
       some_key: @at "sign" value
     `, {fix: true});
 
@@ -56,7 +56,7 @@ describe('linter', function () {
   });
 
   it('errors for unescaped single quotes', function () {
-    const {issues} = yamlLint.lint(unindent`
+    const {issues} = yamlDoctor.check(unindent`
       some_key: 'it's a bequot'd string
                  cross'd multiple lines.'
     `);
@@ -77,7 +77,7 @@ describe('linter', function () {
   });
 
   it('does not error for escaped single quotes', function () {
-    const {issues} = yamlLint.lint(unindent`
+    const {issues} = yamlDoctor.check(unindent`
       some_key: 'it''s a bequot'd string'
     `);
 
@@ -88,7 +88,7 @@ describe('linter', function () {
   });
 
   it('errors for unescaped double quotes', function () {
-    const {issues} = yamlLint.lint(unindent`
+    const {issues} = yamlDoctor.check(unindent`
       some_key: "it's a \\"properly\\" "quoted" string"
     `);
 
@@ -102,7 +102,7 @@ describe('linter', function () {
   });
 
   it('errors for unescaped double quotes when overly escaped', function () {
-    const {issues} = yamlLint.lint(unindent`
+    const {issues} = yamlDoctor.check(unindent`
       some_key: "it's an escaped slash before a \\\\" quote"
     `);
 
@@ -113,7 +113,7 @@ describe('linter', function () {
   });
 
   it('warns for anchors that are probably HTML entities', function () {
-    const {issues} = yamlLint.lint(unindent`
+    const {issues} = yamlDoctor.check(unindent`
       some_key: &copy; 2019 Asana, Inc.
     `);
 
@@ -124,7 +124,7 @@ describe('linter', function () {
   });
 
   it('errors for bad indentation', function () {
-    const {issues} = yamlLint.lint(unindent`
+    const {issues} = yamlDoctor.check(unindent`
       some_key:
         - key_1: value
          misindented_key: value
@@ -137,7 +137,7 @@ describe('linter', function () {
   });
 
   it('errors for non-sequences starting with `[`', function () {
-    const {issues} = yamlLint.lint('some_key: [Something] blah blah');
+    const {issues} = yamlDoctor.check('some_key: [Something] blah blah');
 
     assert.equal(issues.length, 1, 'There should have been one issue');
     assert.equal(issues[0].level, 'error');
@@ -146,7 +146,7 @@ describe('linter', function () {
   });
 
   it('can fix non-sequences starting with `[`', function () {
-    const {fixed} = yamlLint.lint(unindent`
+    const {fixed} = yamlDoctor.check(unindent`
       some_key: [Something] blah blah and so on and so for forth
                 blah blah just listen to me drone on...
       another_key: "We're done with that now"
@@ -160,13 +160,13 @@ describe('linter', function () {
   });
 
   it('accepts comments after quoted strings', function () {
-    const {issues} = yamlLint.lint('some_key: "some value" # some comment');
+    const {issues} = yamlDoctor.check('some_key: "some value" # some comment');
 
     assert.deepEqual(issues, [], 'There should be no issues');
   });
 
   it('handles quoted keys', function () {
-    const {issues} = yamlLint.lint(`
+    const {issues} = yamlDoctor.check(`
       "some key": some value
       another_key:
         "with nested quoted keys": and another value
@@ -176,7 +176,7 @@ describe('linter', function () {
   });
 
   it('identifies potential malformed variable substitutions', function () {
-    const {issues} = yamlLint.lint(`
+    const {issues} = yamlDoctor.check(`
       a_list:
         - {{ this_is_not_actually_a_variable }}
         -  "{{ this_is_a_variable }}"
@@ -189,7 +189,7 @@ describe('linter', function () {
   });
 
   it('can fix malformed variable substitutions', function () {
-    const {fixed} = yamlLint.lint(unindent`
+    const {fixed} = yamlDoctor.check(unindent`
       a_list:
         - {{ this_is_not_actually_a_variable }}
         -  "{{ this_is_a_variable }}"
@@ -205,7 +205,7 @@ describe('linter', function () {
   });
 
   it('can fix unescaped single quotes', function () {
-    const {fixed} = yamlLint.lint(unindent`
+    const {fixed} = yamlDoctor.check(unindent`
       some_key: 'it''s a bequot'd string'
     `, {fix: true});
 
@@ -215,7 +215,7 @@ describe('linter', function () {
   });
 
   it('errors on invalid escape sequences in double-quoted strings', function () {
-    const {issues} = yamlLint.lint(unindent`
+    const {issues} = yamlDoctor.check(unindent`
       bad_escapes: "
         Bad:  \\'
         Good: \\\\' (the slash is escaped, not the ')
@@ -235,7 +235,7 @@ describe('linter', function () {
   });
 
   it('correctly locates invalid escapes when unescaped quotes are involved', function () {
-    const {issues} = yamlLint.lint(unindent`
+    const {issues} = yamlDoctor.check(unindent`
       bad_escapes: "Didn\\'t you say "please?""
     `);
 
@@ -245,7 +245,7 @@ describe('linter', function () {
   });
 
   it('correctly handles strings that started but did not end with double quotes and where a later value was quoted', function () {
-    const {issues} = yamlLint.lint(unindent`
+    const {issues} = yamlDoctor.check(unindent`
       unending_string: "Didn't you say please," I asked.
       a_separate_value: "Indeed."
     `);
@@ -264,7 +264,7 @@ describe('linter', function () {
   });
 
   it('handles quoted strings that do not end but which have other paired quotes in them', function () {
-    const {issues} = yamlLint.lint(unindent`
+    const {issues} = yamlDoctor.check(unindent`
       unending_string: "This is a so-called "double quoted" scalar.
       a_separate_value: "Indeed."
     `);
@@ -285,7 +285,7 @@ describe('linter', function () {
   });
 
   it('does not merge an unended double-quote string with another, later double-quote string', function () {
-    const {fixed} = yamlLint.lint(unindent`
+    const {fixed} = yamlDoctor.check(unindent`
       unending_string: "Didn't you say please," I asked.
       a_separate_value: "Indeed."
     `, {fix: true});
@@ -298,9 +298,9 @@ describe('linter', function () {
 
   it('errors on unprintable control characters', function () {
     // Using escapes instead of the actual chars below so they are visible.
-    // Note JS will parse the escapes, so the YAML linter will see them as the
+    // Note JS will parse the escapes, so the YAML Doctor will see them as the
     // literal character that is not allowed.
-    const {issues} = yamlLint.lint(unindent`
+    const {issues} = yamlDoctor.check(unindent`
       has_unprintables: text\u0008<-backspace char\u0006<-acknowledge char
     `, {debug: false});
 
@@ -314,7 +314,7 @@ describe('linter', function () {
   });
 
   it('removes unprintable control characters when `fix` and `removeInvalidCharacters` are both true', function () {
-    const {fixed} = yamlLint.lint(unindent`
+    const {fixed} = yamlDoctor.check(unindent`
       has_unprintables: text\u0008<-backspace char\u0006<-acknowledge char
     `, {fix: true, removeInvalidCharacters: true});
 
@@ -324,7 +324,7 @@ describe('linter', function () {
   });
 
   it('warns on unindented lines in scalars', function () {
-    const {issues} = yamlLint.lint(unindent`
+    const {issues} = yamlDoctor.check(unindent`
       some_key:
         indented_key: "some multiline value that
       is unindented
@@ -343,7 +343,7 @@ describe('linter', function () {
   });
 
   it('can fix unindented lines in scalars', function () {
-    const {fixed} = yamlLint.lint(unindent`
+    const {fixed} = yamlDoctor.check(unindent`
       some_key:
         indented_key: "some multiline value that
       is unindented
@@ -359,7 +359,7 @@ describe('linter', function () {
   });
 
   it('can fix unindented lines in scalars when mixed with other scalar errors', function () {
-    const {fixed} = yamlLint.lint(unindent`
+    const {fixed} = yamlDoctor.check(unindent`
       some_key:
         indented_key: "some multiline value with bad " quotes that
       is unindented

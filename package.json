@@ -1,10 +1,10 @@
 {
-  "name": "yaml-linter",
+  "name": "yaml-doctor",
   "version": "0.1.0",
   "description": "Identify and fix dangerous or invalid YAML syntax",
   "main": "index.js",
   "bin": {
-    "yaml-linter": "./bin/yaml-linter"
+    "yaml-doctor": "./bin/yaml-doctor"
   },
   "scripts": {
     "test": "mocha"
