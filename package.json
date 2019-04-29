@@ -1,6 +1,6 @@
 {
   "name": "yaml-doctor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Identify and fix dangerous or invalid YAML syntax",
   "main": "index.js",
   "bin": {
@@ -11,7 +11,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/Asana/yaml-linter-temp.git"
+    "url": "git+https://github.com/Mr0grog/yaml-doctor.git"
   },
   "keywords": [
     "yaml",
@@ -20,9 +20,9 @@
   "author": "Rob Brackett and Asana, Inc.",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Asana/yaml-linter-temp/issues"
+    "url": "https://github.com/Mr0grog/yaml-doctor/issues"
   },
-  "homepage": "https://github.com/Asana/yaml-linter-temp#readme",
+  "homepage": "https://github.com/Mr0grog/yaml-doctor#readme",
   "devDependencies": {
     "eslint": "^5.16.0",
     "mocha": "^6.1.4"
