@@ -31,7 +31,7 @@ But this checker is designed to give you more useful messaging, and find all the
 
 example.yaml
   1:14       error    unescaped quote in quoted string
-  5:2        warning  deficient indentation
+  5:2        warning  line is under-indented (it should be indented at least 5)
 ```
 
 Instead of finding some invalid syntax before the colon on line 2, it correctly susses out that you had a quote that should have been escaped on line 1. It also flagged the under-indented value on line 5. You might think of it like [pyflakes][] in comparison to [flake8][].
