@@ -1,6 +1,6 @@
 # YAML Doctor
 
-YAML Doctor attempts to identify YAML syntax errors in helpful human terms and [where possible] automatically fix them, with a focus on predicting and identifying what the YAML author probably *intended* when the syntax is questionable.
+YAML Doctor identifies YAML syntax errors in helpful human terms and [optionally] automatically fixes them, with a focus on predicting and identifying the YAML author’s intent.
 
 **What makes this different from most YAML linters?**
 
