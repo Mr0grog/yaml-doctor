@@ -70,7 +70,7 @@ If you check a `.md` (Markdown) file, YAML Doctor is also smart enough to check 
 - Unescaped quotes in single- and double-quoted scalars.
 
     ```yaml
-    some_key: "Thess "quotes" should have been escaped"
+    some_key: "These "quotes" should have been escaped"
     another: 'This should've been, too'
     ```
 
