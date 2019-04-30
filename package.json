@@ -29,6 +29,7 @@
   },
   "dependencies": {
     "chalk": "^2.4.2",
-    "js-yaml": "^3.13.1"
+    "js-yaml": "^3.13.1",
+    "optionator": "^0.8.2"
   }
 }
