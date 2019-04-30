@@ -336,10 +336,12 @@ describe('checker', function () {
     assert.equal(issues[0].level, 'warning');
     assert.equal(issues[0].mark.line, 3, 'The first bad indent line');
     assert.equal(issues[0].mark.column, 0, 'The first bad indent column');
+    assertIncludes(issues[0].message, 'at least 3');
 
     assert.equal(issues[1].level, 'warning');
     assert.equal(issues[1].mark.line, 4, 'The second bad indent line');
     assert.equal(issues[1].mark.column, 1, 'The second bad indent column');
+    assertIncludes(issues[1].message, 'at least 3');
   });
 
   it('can fix unindented lines in scalars', function () {
