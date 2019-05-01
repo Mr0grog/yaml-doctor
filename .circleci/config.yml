@@ -4,9 +4,14 @@ version: 2.1
 # Probably should only run eslint with one of them.
 jobs:
   build:
+    parameters:
+      node:
+        description: "What Node.js version to use"
+        default: "10.15.3"
+        type: string
     working_directory: ~/yaml-doctor
     docker:
-      - image: circleci/node:10.15.3
+      - image: "circleci/node:<< parameters.node >>"
     steps:
       - checkout
 
@@ -42,4 +47,9 @@ workflows:
   version: 2.1
   build:
     jobs:
-      - build
+      - build:
+          node: "10.15.3"
+      - build:
+          node: "8"
+      - build:
+          node: "12"
