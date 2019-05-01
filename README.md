@@ -42,7 +42,7 @@ Even better, you can run it with the `--fix` option to automatically fix what it
 > yaml-doctor example.yaml --fix
 example.yaml
   1:14       fixed    unescaped quote in quoted string
-  5:2        fixed    deficient indentation
+  5:2        fixed    line is under-indented (it should be indented at least 5)
 
 > cat example.yaml
 some_key: 'It''s got a quoted value with an unescaped quote'
