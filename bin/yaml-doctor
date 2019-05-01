@@ -10,8 +10,11 @@
 
 const chalk = require('chalk');
 const format = require('../lib/format');
+const fs = require('fs');
+const glob = require('glob');
 const optionator = require('optionator');
 const path = require('path');
+const util = require('util');
 const yamlDoctor = require('..');
 
 const optionParser = optionator({
@@ -62,31 +65,102 @@ function runWithOptions (callback) {
     process.exitCode = 1;
   }
   else {
-    callback(options);
+    Promise.resolve(callback(options)).catch(error => {
+      process.exitCode = 1;
+      console.error(error.message);
+    });
   }
 }
 
-runWithOptions(options => {
-  const filePath = options._[0];
-  yamlDoctor.checkFile(filePath, null, options)
-    .then(result => {
-      if (result.issues.length) {
-        format.printIssues(filePath, result.issues);
-        if (result.issues.some(issue => issue.level === 'error')) {
-          process.exitCode = 1;
+const statFile = util.promisify(fs.stat);
+
+async function normalizePattern (pattern) {
+  try {
+    const stat = await statFile(pattern);
+    if (stat.isDirectory()) {
+      // TODO: make these extensions customizable
+      return path.join(pattern, '**', '*.{yaml,yml,md}');
+    }
+  }
+  catch (error) {
+    // Assume this is a glob and just continue on
+  }
+
+  return pattern;
+}
+
+function globPromise (pattern, options) {
+  return new Promise((resolve, reject) => {
+    glob(pattern, options, (error, files) => {
+      if (error) reject(error);
+      else resolve(files);
+    });
+  });
+}
+
+async function resolvePaths (patterns) {
+  const pathSets = await Promise.all(patterns.map(
+    path => normalizePattern(path).then(path => globPromise(path, {realpath: true}))
+  ));
+
+  return pathSets.reduce((flat, paths) => flat.concat(paths), []);
+}
+
+runWithOptions(async options => {
+  const filePaths = await resolvePaths(options._);
+
+  if (!filePaths.length) {
+    console.error('No files matched the given paths');
+    process.exitCode = 1;
+  }
+  else {
+    let fileCount = 0;
+    let errorCount = 0;
+    let warningCount = 0;
+    let fixedCount = 0;
+    let fileErrors = [];
+
+    for (let filePath of filePaths) {
+      fileCount++;
+
+      let result;
+      try {
+        result = await yamlDoctor.checkFile(filePath, null, options);
+      }
+      catch (error) {
+        // If the file couldn't be read, log the error but keep going.
+        if (error.code === 'ENOENT') {
+          fileErrors.push(filePath);
+          errorCount += 1;
+          continue;
+        }
+        // For other unknown errors, bail out!
+        else {
+          throw error;
         }
       }
-      else {
-        console.log('No issues!');
+      const issues = result.issues;
+
+      if (issues.length) {
+        format.printIssues(filePath, issues);
+        issues.forEach(issue => {
+          if (issue.level === 'error') errorCount++;
+          else if (issue.level === 'fixed') fixedCount++;
+          else warningCount++;
+        });
       }
-    })
-    .catch(error => {
-      if (error.code === 'ENOENT') {
-        console.error(`No file at path: ${filePath}`);
-      }
-      else {
-        console.error(error);
-      }
+    }
+
+    if (fileErrors.length) {
+      const fileText = fileErrors.length === 1 ? 'file' : 'files';
+      console.log(`Could not read ${fileErrors.length} ${fileText}:`);
+      fileErrors.forEach(path => console.log(`  ${path}`));
+      console.log();
+    }
+
+    console.log(`${errorCount} errors, ${warningCount} warnings, ${fixedCount} fixed in ${fileCount} files.`);
+    if (errorCount > 0) {
       process.exitCode = 1;
-    });
+    }
+  }
 });
