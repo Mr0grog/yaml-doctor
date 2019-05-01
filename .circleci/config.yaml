@@ -1,0 +1,55 @@
+version: 2.1
+
+# TODO: define a re-usable job and run it in Node 8, 10, and 12.
+# Probably should only run eslint with one of them.
+jobs:
+  build:
+    parameters:
+      node:
+        description: "What Node.js version to use"
+        default: "10.15.3"
+        type: string
+    working_directory: ~/yaml-doctor
+    docker:
+      - image: "circleci/node:<< parameters.node >>"
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - doctor-v1-{{ arch }}-{{ checksum "package-lock.json" }}
+            - doctor-v1-{{ arch }}-
+            - doctor-v1-
+
+      - run:
+          name: Install Dependencies
+          command: |
+            echo "Node version: $(node --version)"
+            echo "NPM version:  $(npm --version)"
+            npm ci
+
+      - save_cache:
+          key: doctor-v1-{{ arch }}-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
+
+      - run:
+          name: Lint
+          command: |
+            node_modules/.bin/eslint .
+
+      - run:
+          name: Tests
+          command: |
+            npm test
+
+workflows:
+  version: 2.1
+  build:
+    jobs:
+      - build:
+          node: 10.15.3
+      - build:
+          node: 8
+      - build:
+          node: 12
