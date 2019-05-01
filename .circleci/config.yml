@@ -1,0 +1,74 @@
+version: 2.1
+
+commands:
+  checkout_and_install:
+    description: "Checkout the repo and install dependencies."
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - doctor-v1-{{ arch }}-{{ checksum "package-lock.json" }}
+            - doctor-v1-{{ arch }}-
+            - doctor-v1-
+
+      - run:
+          name: Install Dependencies
+          command: |
+            echo "Node version: $(node --version)"
+            echo "NPM version:  $(npm --version)"
+            npm ci
+
+      - save_cache:
+          key: doctor-v1-{{ arch }}-{{ checksum "package-lock.json" }}
+          paths:
+            - node_modules
+
+alias:
+  test_step: &test_step
+    name: Tests
+    command: |
+      npm test
+
+# TODO: define a re-usable job and run it in Node 8, 10, and 12.
+# Probably should only run eslint with one of them.
+jobs:
+  Test_Node_v8:
+    docker:
+      - image: "circleci/node:8.16"
+    steps:
+      - checkout_and_install
+      - run: *test_step
+
+  Test_Node_v10:
+    docker:
+      - image: "circleci/node:10.15.3"
+    steps:
+      - checkout_and_install
+      - run: *test_step
+
+  Test_Node_v12:
+    docker:
+      - image: "circleci/node:12"
+    steps:
+      - checkout_and_install
+      - run: *test_step
+
+  Lint:
+    docker:
+      - image: "circleci/node:10.15.3"
+    steps:
+      - checkout_and_install
+      - run:
+          name: Lint
+          command: |
+            node_modules/.bin/eslint .
+
+workflows:
+  version: 2.1
+  build:
+    jobs:
+      - Test_Node_v8
+      - Test_Node_v10
+      - Test_Node_v12
+      - Lint
