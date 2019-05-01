@@ -1,6 +1,6 @@
 # YAML Doctor
 
-YAML Doctor attempts to identify YAML syntax errors in helpful human terms and [where possible] automatically fix them, with a focus on predicting and identifying what the YAML author probably *intended* when the syntax is questionable.
+YAML Doctor identifies YAML syntax errors in helpful human terms and [optionally] automatically fixes them, with a focus on predicting and identifying the YAML author’s intent.
 
 **What makes this different from most YAML linters?**
 
@@ -70,7 +70,7 @@ If you check a `.md` (Markdown) file, YAML Doctor is also smart enough to check 
 - Unescaped quotes in single- and double-quoted scalars.
 
     ```yaml
-    some_key: "Thess "quotes" should have been escaped"
+    some_key: "These "quotes" should have been escaped"
     another: 'This should've been, too'
     ```
 
