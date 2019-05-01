@@ -1,17 +1,8 @@
 version: 2.1
 
-# TODO: define a re-usable job and run it in Node 8, 10, and 12.
-# Probably should only run eslint with one of them.
-jobs:
-  build:
-    parameters:
-      node:
-        description: "What Node.js version to use"
-        default: "10.15.3"
-        type: string
-    working_directory: ~/yaml-doctor
-    docker:
-      - image: "circleci/node:<< parameters.node >>"
+commands:
+  checkout_and_install:
+    description: "Checkout the repo and install dependencies."
     steps:
       - checkout
 
@@ -33,23 +24,51 @@ jobs:
           paths:
             - node_modules
 
+alias:
+  test_step: &test_step
+    name: Tests
+    command: |
+      npm test
+
+# TODO: define a re-usable job and run it in Node 8, 10, and 12.
+# Probably should only run eslint with one of them.
+jobs:
+  build_node_8:
+    docker:
+      - image: "circleci/node:8.16"
+    steps:
+      - checkout_and_install
+      - run: *test_step
+
+  build_node_10:
+    docker:
+      - image: "circleci/node:10.15.3"
+    steps:
+      - checkout_and_install
+      - run: *test_step
+
+  build_node_12:
+    docker:
+      - image: "circleci/node:12.1"
+    steps:
+      - checkout_and_install
+      - run: *test_step
+
+  lint:
+    docker:
+      - image: "circleci/node:10.15.3"
+    steps:
+      - checkout_and_install
       - run:
           name: Lint
           command: |
             node_modules/.bin/eslint .
 
-      - run:
-          name: Tests
-          command: |
-            npm test
-
 workflows:
   version: 2.1
   build:
     jobs:
-      - build:
-          node: "10.15.3"
-      - build:
-          node: "8"
-      - build:
-          node: "12"
+      - build_node_8
+      - build_node_10
+      - build_node_12
+      - lint
