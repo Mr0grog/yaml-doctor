@@ -33,28 +33,28 @@ alias:
 # TODO: define a re-usable job and run it in Node 8, 10, and 12.
 # Probably should only run eslint with one of them.
 jobs:
-  build_node_8:
+  "Test (Node.js v8)":
     docker:
       - image: "circleci/node:8.16"
     steps:
       - checkout_and_install
       - run: *test_step
 
-  build_node_10:
+  "Test (Node.js v10)":
     docker:
       - image: "circleci/node:10.15.3"
     steps:
       - checkout_and_install
       - run: *test_step
 
-  build_node_12:
+  "Test (Node.js v12)":
     docker:
       - image: "circleci/node:12"
     steps:
       - checkout_and_install
       - run: *test_step
 
-  lint:
+  Lint:
     docker:
       - image: "circleci/node:10.15.3"
     steps:
@@ -68,7 +68,7 @@ workflows:
   version: 2.1
   build:
     jobs:
-      - build_node_8
-      - build_node_10
-      - build_node_12
-      - lint
+      - "Test (Node.js v8)"
+      - "Test (Node.js v10)"
+      - "Test (Node.js v12)"
+      - Lint
