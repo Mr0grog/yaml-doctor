@@ -1,0 +1,5 @@
+---
+some_key: Some value
+indented:
+    key: 'String that breaks across lines
+ but is not indented.'

@@ -54,6 +54,8 @@ indented:
 
 If you check a `.md` (Markdown) file, YAML Doctor is also smart enough to check just the front-matter, and only if it looks like YAML front-matter :)
 
+If you check a directory, YAML Doctor will look for all the `.yaml`, `.yml`, and `.md` files in it.
+
 
 **What kinds of errors does it address?**
 
@@ -148,6 +150,7 @@ And run it on a file:
 - `--fix` Fix any issues that can be safely resolved automatically.
 - `--debug` Print debug messages while parsing.
 - `--help` Print information about usage and options.
+- `--version` Print the version of YAML Doctor that your are running.
 
 
 ### Library
@@ -221,8 +224,6 @@ First off, a HUGE thanks to [Asana, Inc.][asana] for support the development of 
 
 - Work to see how the ideas here might be integrated into existing YAML parsers. In many cases, parsers might be able to offer clearer messaging like what’s found here. Of course, this package does a lot of extra work not to stop early or to look at the surrounding context to determine what might have been intended. A lot of that might be reasonably outside the scope of a parser.
     - Work with [`js-yaml`][js-yaml] authors to solidify the private interfaces this relies on!
-
-- Support walking directory trees in the command-line application (it currently only supports single files).
 
 - Clean up checking code and split different issue types into separate "rule" objects so it’s a little easier to manage.
 

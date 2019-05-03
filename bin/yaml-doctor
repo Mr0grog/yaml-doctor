@@ -8,46 +8,108 @@
 
 'use strict';
 
-const yamlDoctor = require('..');
-const format = require('../lib/format');
+const Batch = require('../lib/batch');
+const chalk = require('chalk');
+const fsPromises = require('../lib/fs-promises');
+const glob = require('glob');
+const optionator = require('optionator');
+const path = require('path');
+const util = require('util');
 
-const usage = `Check YAML for syntax errors.
-Usage: yaml-doctor <PATH> [--fix]
+const optionParser = optionator({
+  prepend: 'Check YAML files for syntax errors.\n\nUsage: yaml-doctor [options] <PATH...>',
+  options: [
+    {
+      option: 'help',
+      type: 'Boolean',
+      description: 'Display list of command-line options'
+    },
+    {
+      option: 'version',
+      type: 'Boolean',
+      description: 'Show version number'
+    },
+    {
+      option: 'fix',
+      type: 'Boolean',
+      description: 'Fix any automatically resolvable errors'
+    },
+    {
+      option: 'debug',
+      type: 'Boolean',
+      description: 'Print debug messages'
+    }
+  ]
+});
 
-Options:
-  --help   Print this help message.
-  --fix    Fix any automatically resolvable errors.
-  --debug  Print debug messages.`;
+function runWithOptions (callback) {
+  let options;
+  try {
+    options = optionParser.parseArgv(process.argv);
+  }
+  catch (error) {
+    console.error(chalk.red(error.message), '\n');
+    options = {help: true};
+  }
 
-const filePath = process.argv[2];
-if (!filePath || process.argv.includes('--help')) {
-  console.log(usage);
-}
-else {
-  const options = {
-    fix: process.argv.includes('--fix'),
-    debug: process.argv.includes('--debug')
-  };
-
-  yamlDoctor.checkFile(filePath, null, options)
-    .then(result => {
-      if (result.issues.length) {
-        format.printIssues(filePath, result.issues);
-        if (result.issues.some(issue => issue.level === 'error')) {
-          process.exitCode = 1;
-        }
-      }
-      else {
-        console.log('No issues!');
-      }
-    })
-    .catch(error => {
-      if (error.code === 'ENOENT') {
-        console.error(`No file at path: ${filePath}`);
-      }
-      else {
-        console.error(error);
-      }
+  if (options.help) {
+    console.log(optionParser.generateHelp());
+  }
+  else if (options.version) {
+    const version = require(path.join(__dirname, '..', 'package.json')).version;
+    console.log('Version', version);
+  }
+  else if (options._.length === 0) {
+    console.error('You must provide at least one path or glob to check');
+    process.exitCode = 1;
+  }
+  else {
+    Promise.resolve(callback(options)).catch(error => {
       process.exitCode = 1;
+      console.error(error.message);
     });
+  }
 }
+
+async function normalizePattern (pattern) {
+  try {
+    const stat = await fsPromises.stat(pattern);
+    if (stat.isDirectory()) {
+      // TODO: make these extensions customizable
+      return path.join(pattern, '**', '*.{yaml,yml,md}');
+    }
+  }
+  catch (error) {
+    // Assume this is a glob and just continue on
+  }
+
+  return pattern;
+}
+
+const globPromise = util.promisify(glob);
+
+async function resolvePaths (patterns) {
+  const pathSets = await Promise.all(patterns.map(
+    path => normalizePattern(path).then(path => globPromise(path, {realpath: true}))
+  ));
+
+  return pathSets.reduce((flat, paths) => flat.concat(paths), []);
+}
+
+runWithOptions(async options => {
+  const filePaths = await resolvePaths(options._);
+
+  if (!filePaths.length) {
+    console.error('No files matched the given paths');
+    process.exitCode = 1;
+  }
+  else {
+    const batch = new Batch(options);
+    for (let filePath of filePaths) {
+      await batch.reportFile(filePath, null);
+    }
+
+    batch.reportSummary();
+    batch.setExitCode();
+  }
+});
