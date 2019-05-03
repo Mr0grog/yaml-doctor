@@ -10,11 +10,10 @@
 
 const chalk = require('chalk');
 const format = require('../lib/format');
-const fs = require('fs');
+const fsPromises = require('../lib/fs-promises');
 const glob = require('glob');
 const optionator = require('optionator');
 const path = require('path');
-const util = require('util');
 const yamlDoctor = require('..');
 
 const optionParser = optionator({
@@ -72,11 +71,9 @@ function runWithOptions (callback) {
   }
 }
 
-const statFile = util.promisify(fs.stat);
-
 async function normalizePattern (pattern) {
   try {
-    const stat = await statFile(pattern);
+    const stat = await fsPromises.stat(pattern);
     if (stat.isDirectory()) {
       // TODO: make these extensions customizable
       return path.join(pattern, '**', '*.{yaml,yml,md}');
