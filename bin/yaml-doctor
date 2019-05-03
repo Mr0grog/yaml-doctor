@@ -14,6 +14,7 @@ const fsPromises = require('../lib/fs-promises');
 const glob = require('glob');
 const optionator = require('optionator');
 const path = require('path');
+const util = require('util');
 
 const optionParser = optionator({
   prepend: 'Check YAML files for syntax errors.\n\nUsage: yaml-doctor [options] <PATH...>',
@@ -85,14 +86,7 @@ async function normalizePattern (pattern) {
   return pattern;
 }
 
-function globPromise (pattern, options) {
-  return new Promise((resolve, reject) => {
-    glob(pattern, options, (error, files) => {
-      if (error) reject(error);
-      else resolve(files);
-    });
-  });
-}
+const globPromise = util.promisify(glob);
 
 async function resolvePaths (patterns) {
   const pathSets = await Promise.all(patterns.map(
