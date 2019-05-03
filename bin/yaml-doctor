@@ -10,12 +10,10 @@
 
 const Batch = require('../lib/batch');
 const chalk = require('chalk');
-const format = require('../lib/format');
 const fsPromises = require('../lib/fs-promises');
 const glob = require('glob');
 const optionator = require('optionator');
 const path = require('path');
-const yamlDoctor = require('..');
 
 const optionParser = optionator({
   prepend: 'Check YAML files for syntax errors.\n\nUsage: yaml-doctor [options] <PATH...>',
