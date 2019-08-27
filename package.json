@@ -24,8 +24,8 @@
   },
   "homepage": "https://github.com/Mr0grog/yaml-doctor#readme",
   "devDependencies": {
-    "eslint": "^5.16.0",
-    "mocha": "^6.1.4"
+    "eslint": "^6.2.2",
+    "mocha": "^6.2.0"
   },
   "dependencies": {
     "chalk": "^2.4.2",
