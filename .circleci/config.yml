@@ -46,7 +46,7 @@ jobs:
       - run:
           name: Lint
           command: |
-            node_modules/.bin/eslint .
+            npm run lint
 
 workflows:
   build:
