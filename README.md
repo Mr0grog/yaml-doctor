@@ -128,7 +128,7 @@ If you check a directory, YAML Doctor will look for all the `.yaml`, `.yml`, and
 
 ## Installation and Usage
 
-YAML Doctor can be used as a CLI application or a library.
+YAML Doctor can be used as a CLI application or a library. It requires Node.js version 8.0.0 or higher.
 
 
 ### Command-Line
