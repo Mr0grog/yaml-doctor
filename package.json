@@ -30,11 +30,11 @@
   },
   "dependencies": {
     "chalk": "^4.1.2",
-    "glob": "^7.2.3",
+    "glob": "^8.0.3",
     "js-yaml": "^3.13.1",
     "optionator": "^0.9.0"
   },
   "engines" : {
-    "node" : ">=10.0.0"
+    "node" : ">=12.0.0"
   }
 }
