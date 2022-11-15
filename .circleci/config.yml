@@ -8,9 +8,9 @@ commands:
 
       - restore_cache:
           keys:
-            - doctor-v1-{{ arch }}-{{ checksum "package-lock.json" }}
-            - doctor-v1-{{ arch }}-
-            - doctor-v1-
+            - doctor-v2-{{ arch }}-{{ checksum "package-lock.json" }}
+            - doctor-v2-{{ arch }}-
+            - doctor-v2-
 
       - run:
           name: Install Dependencies
@@ -20,54 +20,39 @@ commands:
             npm ci
 
       - save_cache:
-          key: doctor-v1-{{ arch }}-{{ checksum "package-lock.json" }}
+          key: doctor-v2-{{ arch }}-{{ checksum "package-lock.json" }}
           paths:
-            - node_modules
+            - ~/.npm
 
-alias:
-  test_step: &test_step
-    name: Tests
-    command: |
-      npm test
-
-# TODO: define a re-usable job and run it in Node 8, 10, and 12.
-# Probably should only run eslint with one of them.
 jobs:
-  Test_Node_v8:
+  Test:
+    parameters:
+      node-version:
+        type: string
     docker:
-      - image: "circleci/node:8"
+      - image: "cimg/node:<< parameters.node-version >>"
     steps:
       - checkout_and_install
-      - run: *test_step
-
-  Test_Node_v10:
-    docker:
-      - image: "circleci/node:10"
-    steps:
-      - checkout_and_install
-      - run: *test_step
-
-  Test_Node_v12:
-    docker:
-      - image: "circleci/node:12"
-    steps:
-      - checkout_and_install
-      - run: *test_step
+      - run:
+          name: Tests
+          command: |
+            npm test
 
   Lint:
     docker:
-      - image: "circleci/node:12"
+      - image: "cimg/node:18.12"
     steps:
       - checkout_and_install
       - run:
           name: Lint
           command: |
-            node_modules/.bin/eslint .
+            npm run lint
 
 workflows:
   build:
     jobs:
-      - Test_Node_v8
-      - Test_Node_v10
-      - Test_Node_v12
+      - Test:
+          matrix:
+            parameters:
+              node-version: ["12.22", "14.21", "16.18", "18.12", "19.0"]
       - Lint
