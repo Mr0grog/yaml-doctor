@@ -17,7 +17,7 @@ const path = require('path');
 const util = require('util');
 
 const optionParser = optionator({
-  prepend: 'Check YAML files for syntax errors.\n\nUsage: yaml-doctor [options] <PATH...>',
+  prepend: 'Check YAML files for syntax errors.\n\nUsage: yaml-doctor [options] <DIR|FILE|GLOB...>',
   options: [
     {
       option: 'help',
@@ -38,6 +38,13 @@ const optionParser = optionator({
       option: 'debug',
       type: 'Boolean',
       description: 'Print debug messages'
+    },
+    {
+      option: 'extensions',
+      type: 'Array',
+      concatRepeatedArrays: true,
+      description: 'When checking a directory, yaml-doctor will check files with these extensions inside it. Can be a comma-separated list (e.g. `--extensions .yaml,.yml`) or you can specify the argument multiple times (e.g. `--extensions .yaml --extensions .yml`).',
+      default: '.yaml,.yml,.md'
     }
   ]
 });
@@ -71,12 +78,16 @@ function runWithOptions (callback) {
   }
 }
 
-async function normalizePattern (pattern) {
+async function normalizePattern (pattern, extensions) {
   try {
     const stat = await fsPromises.stat(pattern);
     if (stat.isDirectory()) {
-      // TODO: make these extensions customizable
-      return path.join(pattern, '**', '*.{yaml,yml,md}');
+      // Glob arrays (`*.{a,b,c}`) do not work if there is only one item, so
+      // format the glob differently based on how many extensions there are.
+      const nameGlob = extensions.length > 1
+        ? `*.{${extensions.join(',')}}`
+        : `*.${extensions[0]}`;
+      return path.join(pattern, '**', nameGlob);
     }
   }
   catch (error) {
@@ -86,18 +97,24 @@ async function normalizePattern (pattern) {
   return pattern;
 }
 
+function normalizeExtensions (extensions) {
+  return extensions.map(extension => extension.replace(/^\./, ''));
+}
+
 const globPromise = util.promisify(glob);
 
-async function resolvePaths (patterns) {
-  const pathSets = await Promise.all(patterns.map(
-    path => normalizePattern(path).then(path => globPromise(path, {realpath: true}))
-  ));
+async function resolvePaths (patterns, extensions) {
+  const pathSets = await Promise.all(patterns.map(async (path) => {
+    const pattern = await normalizePattern(path, extensions);
+    return globPromise(pattern, {realpath: true});
+  }));
 
-  return pathSets.reduce((flat, paths) => flat.concat(paths), []);
+  return pathSets.flat();
 }
 
 runWithOptions(async options => {
-  const filePaths = await resolvePaths(options._);
+  const extensions = normalizeExtensions(options.extensions);
+  const filePaths = await resolvePaths(options._, extensions);
 
   if (!filePaths.length) {
     console.error('No files matched the given paths');
