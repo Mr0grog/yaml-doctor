@@ -1,6 +1,6 @@
 {
   "name": "yaml-doctor",
-  "version": "0.2.1-dev",
+  "version": "0.3.0-dev",
   "description": "Identify and fix dangerous or invalid YAML syntax",
   "main": "index.js",
   "bin": {
