@@ -239,7 +239,7 @@ Have errors or additional situations this doesn’t handle well? Want to help wi
 
 ## License
 
-Copyright (c) 2019 Rob Brackett and [Asana, Inc.][asana]
+Copyright (c) 2019-2024 Rob Brackett and [Asana, Inc.][asana]
 
 Licensed under the MIT license. See the `LICENSE` file for the full text of the license.
 
