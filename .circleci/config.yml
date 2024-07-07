@@ -54,5 +54,5 @@ workflows:
       - Test:
           matrix:
             parameters:
-              node-version: ["12.22", "14.21", "16", "18.20", "20.15", "22.4"]
+              node-version: ["12.22", "14.21", "16.20", "18.20", "20.15", "22.4"]
       - Lint
