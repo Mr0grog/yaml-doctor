@@ -53,6 +53,6 @@ workflows:
     jobs:
       - Test:
           matrix:
-            parameters:.20
+            parameters:
               node-version: ["12.22", "14.21", "16", "18.20", "20.15", "22.4"]
       - Lint
