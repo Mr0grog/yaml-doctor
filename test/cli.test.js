@@ -81,4 +81,12 @@ describe('YAML Doctor CLI', function () {
     assert.equal(exitCode, 1, 'Should have exit code of `1` because the text file is not YAML.');
     assertIncludes(stdout, '1 error, 0 warnings, 0 fixed in 1 file', 'It should show a summary');
   });
+
+  it('should look for files matching --ext if set', async function () {
+    const {exitCode, stdout} = await run(['--extensions', '.uhoh', 'fixtures']);
+
+    assert.equal(exitCode, 1, 'Should have exit code of `0`.');
+    assertIncludes(stdout, 'fixtures/some-file.uhoh');
+    assertIncludes(stdout, '1 error, 1 warning, 0 fixed in 1 file');
+  });
 });
