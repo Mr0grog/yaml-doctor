@@ -11,10 +11,9 @@
 const Batch = require('../lib/batch');
 const chalk = require('chalk');
 const fsPromises = require('../lib/fs-promises');
-const glob = require('glob');
+const { glob } = require('glob');
 const optionator = require('optionator');
 const path = require('path');
-const util = require('util');
 
 const optionParser = optionator({
   prepend: 'Check YAML files for syntax errors.\n\nUsage: yaml-doctor [options] <PATH...>',
@@ -86,14 +85,11 @@ async function normalizePattern (pattern) {
   return pattern;
 }
 
-const globPromise = util.promisify(glob);
-
 async function resolvePaths (patterns) {
-  const pathSets = await Promise.all(patterns.map(
-    path => normalizePattern(path).then(path => globPromise(path, {realpath: true}))
-  ));
-
-  return pathSets.reduce((flat, paths) => flat.concat(paths), []);
+  // TODO: this is kind of backward -- it expands directories before globbing
+  // instead of after, even though a glob could match a directory.
+  const normalized = await Promise.all(patterns.map(normalizePattern));
+  return await glob(normalized, {realpath: true});
 }
 
 runWithOptions(async options => {
