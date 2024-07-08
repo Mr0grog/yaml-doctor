@@ -102,4 +102,11 @@ describe('YAML Doctor CLI', function () {
     assert.equal(exitCode, 1, 'Should have exit code of `1`.');
     assertIncludes(stdout, '1 error, 0 warnings, 0 fixed in 2 files');
   });
+
+  it('should work with globs that match a directory', async function () {
+    const {exitCode, stdout} = await run(['fixtures/subfolde*']);
+
+    assert.equal(exitCode, 0, 'Should have exit code of `0`.');
+    assertIncludes(stdout, '0 errors, 0 warnings, 0 fixed in 1 file');
+  });
 });
