@@ -10,7 +10,7 @@
 
 const Batch = require('../lib/batch');
 const chalk = require('chalk');
-const fsPromises = require('../lib/fs-promises');
+const fsPromises = require('fs/promises');
 const { glob } = require('glob');
 const optionator = require('optionator');
 const path = require('path');
