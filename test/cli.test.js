@@ -81,4 +81,25 @@ describe('YAML Doctor CLI', function () {
     assert.equal(exitCode, 1, 'Should have exit code of `1` because the text file is not YAML.');
     assertIncludes(stdout, '1 error, 0 warnings, 0 fixed in 1 file', 'It should show a summary');
   });
+
+  it('should check multiple path patterns', async function() {
+    const {exitCode, stdout} = await run([
+      'fixtures/*warnings*',
+      'fixtures/ugabooga',
+      'fixtures/subfolder/*'
+    ]);
+
+    assert.equal(exitCode, 1, 'Should have exit code of `1`.');
+    assertIncludes(stdout, '1 error, 1 warning, 0 fixed in 3 files');
+  });
+
+  it('should not check the same file multiple times', async function() {
+    const {exitCode, stdout} = await run([
+      'fixtures/subfolder/*',
+      'fixtures/subfolder/*.txt'
+    ]);
+
+    assert.equal(exitCode, 1, 'Should have exit code of `1`.');
+    assertIncludes(stdout, '1 error, 0 warnings, 0 fixed in 2 files');
+  });
 });
