@@ -11,6 +11,7 @@
 const Batch = require('../lib/batch');
 const chalk = require('chalk');
 const { globIterate } = require('glob');
+const { LRUCache } = require('lru-cache');
 const optionator = require('optionator');
 const path = require('path');
 
@@ -73,12 +74,20 @@ function makeDirectoryGlob (directoryPath) {
   return path.join(directoryPath, '**', '*.{yaml,yml,md}');
 }
 
-async function * resolvePaths (patterns) {
+async function * resolvePaths (patterns, cache = null) {
+  cache ||= new LRUCache({max: 1_000});
+
   for await (const entry of globIterate(patterns, {realpath: true, withFileTypes: true})) {
+    const fullpath = entry.fullpath();
+    if (cache.has(fullpath)) {
+      continue;
+    }
+
+    cache.set(fullpath, true);
     if (entry.isDirectory()) {
-      yield *resolvePaths(makeDirectoryGlob(entry.fullpath()));
+      yield *resolvePaths(makeDirectoryGlob(entry.fullpath()), cache);
     } else {
-      yield entry.fullpath();
+      yield fullpath;
     }
   }
 }
