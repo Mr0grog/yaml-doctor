@@ -10,8 +10,8 @@
 
 const Batch = require('../lib/batch');
 const chalk = require('chalk');
-const fsPromises = require('fs/promises');
-const { glob } = require('glob');
+const { globIterate } = require('glob');
+const { LRUCache } = require('lru-cache');
 const optionator = require('optionator');
 const path = require('path');
 
@@ -70,41 +70,38 @@ function runWithOptions (callback) {
   }
 }
 
-async function normalizePattern (pattern) {
-  try {
-    const stat = await fsPromises.stat(pattern);
-    if (stat.isDirectory()) {
-      // TODO: make these extensions customizable
-      return path.join(pattern, '**', '*.{yaml,yml,md}');
-    }
-  }
-  catch (error) {
-    // Assume this is a glob and just continue on
-  }
-
-  return pattern;
+function makeDirectoryGlob (directoryPath) {
+  return path.join(directoryPath, '**', '*.{yaml,yml,md}');
 }
 
-async function resolvePaths (patterns) {
-  // TODO: this is kind of backward -- it expands directories before globbing
-  // instead of after, even though a glob could match a directory.
-  const normalized = await Promise.all(patterns.map(normalizePattern));
-  return await glob(normalized, {realpath: true});
+async function * resolvePaths (patterns, cache = null) {
+  cache ||= new LRUCache({max: 1_000});
+
+  for await (const entry of globIterate(patterns, {realpath: true, withFileTypes: true})) {
+    const fullpath = entry.fullpath();
+    if (cache.has(fullpath)) {
+      continue;
+    }
+
+    cache.set(fullpath, true);
+    if (entry.isDirectory()) {
+      yield *resolvePaths(makeDirectoryGlob(entry.fullpath()), cache);
+    } else {
+      yield fullpath;
+    }
+  }
 }
 
 runWithOptions(async options => {
-  const filePaths = await resolvePaths(options._);
+  const batch = new Batch(options);
+  for await (const filePath of resolvePaths(options._)) {
+    await batch.reportFile(filePath, null);
+  }
 
-  if (!filePaths.length) {
+  if (batch.summary.files === 0) {
     console.error('No files matched the given paths');
     process.exitCode = 1;
-  }
-  else {
-    const batch = new Batch(options);
-    for (let filePath of filePaths) {
-      await batch.reportFile(filePath, null);
-    }
-
+  } else {
     batch.reportSummary();
     batch.setExitCode();
   }
